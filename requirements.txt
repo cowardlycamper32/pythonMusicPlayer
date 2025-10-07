@@ -1,2 +1,5 @@
 pygame
 mutagen
+pygame_gui
+keyboard
+pynput
