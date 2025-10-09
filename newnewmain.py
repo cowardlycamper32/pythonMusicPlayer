@@ -3,7 +3,7 @@ from pygame import mixer
 from mutagen.mp3 import MP3
 import mutagen.easyid3 as easyid3
 from sys import argv
-from os import name
+from os import name, walk
 from os.path import expanduser
 
 if len(argv[1:]) < 1:
@@ -36,7 +36,7 @@ elif name == "nt":
         else:
             TEMP_DIR = expanduser("~") + "/.temp"
 
-class song():
+class Song():
     def __init__(self, path):
         self.path = path
         self.cover = self.getCover()
@@ -79,8 +79,38 @@ class song():
         length = audio.info.length()
         return length
 
-class manager:
+class Manager:
     def __init__(self, width: int = 800, height: int = 800):
         pygame.display.init()
-        display = pygame.display.set_mode((width, height))
+        self.display = pygame.display.set_mode((width, height))
+        self.songs = []
+        self.isPaused = False
+        self.isLooping = False
+        self.songQueuePosition = 0
+        self.currentSong = None
 
+    def getSongs(self, query):
+        if query == "all" or query == "*":
+            for i in walk("./"):
+                print(i)
+    def selectSong(self):
+        self.currentSong = Song(self.songs[self.songQueuePosition])
+
+    def displayCover(self):
+        pass
+
+    def liveCaption(self):
+        pass
+
+    def pausePlay(self):
+        pass
+
+    def skipNextSong(self):
+        pass
+
+    def skipPrevSong(self):
+        pass
+
+
+manager = Manager()
+manager.getSongs("all")

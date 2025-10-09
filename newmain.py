@@ -7,8 +7,10 @@ import random
 from mutagen.easyid3 import EasyID3
 from mutagen.mp3 import MP3
 from  os.path import join
-
-TEMP_DIR = "/home/nova/.temp/"
+if os.name == 'linux':
+    TEMP_DIR = "/home/nova/.temp/"
+else:
+    TEMP_DIR = "C:/users/nova/.temp/"
 
 pygame.display.init()
 pygame.font.init()
@@ -26,11 +28,11 @@ def getExecPath():
     else:
         temp = __file__.split("\\")
     temp.pop(-1)
-    #print(temp)
+    print(temp)
     out = ""
     for i in temp:
         out += i + "/"
-    #print(out)
+    print(out)
     return out
 
 def getCoverImage(path):
@@ -41,7 +43,8 @@ def getCoverImage(path):
         image, imageRect = load_image(TEMP_DIR + "images/cover.png")
         display.blit(pygame.transform.scale(image, display.get_size()), (0,0), display.get_rect())
         return cover
-    except:
+    except AttributeError as e:
+        print(e)
         image, imageRect = load_image(getExecPath() + "placeholder.png")
         display.blit(pygame.transform.scale(image, display.get_size()), (0,0), display.get_rect())
 
