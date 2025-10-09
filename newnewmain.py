@@ -3,7 +3,7 @@ from pygame import mixer
 from mutagen.mp3 import MP3
 import mutagen.easyid3 as easyid3
 from sys import argv
-from os import name, walk
+from os import name, listdir
 from os.path import expanduser
 
 if len(argv[1:]) < 1:
@@ -91,10 +91,12 @@ class Manager:
 
     def getSongs(self, query):
         if query == "all" or query == "*":
-            for i in walk("./"):
-                print(i)
+            for i in listdir("./"):
+                if ".mp3" in i:
+                    self.songs.append(i)
     def selectSong(self):
         self.currentSong = Song(self.songs[self.songQueuePosition])
+
 
     def displayCover(self):
         pass
