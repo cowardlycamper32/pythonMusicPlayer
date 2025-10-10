@@ -108,6 +108,7 @@ seekPointer = 0
 doQuit = False
 pygame.key.set_repeat()
 loop = True
+volume = 1
 while not doQuit:
     if queueHeader > len(songPaths) - 1:
         if loop:
@@ -138,7 +139,7 @@ while not doQuit:
             display.fill((1, 1, 1), pygame.Rect(0, 0, 800, 800))
             debug = font.render(str(seekPointer), False, (255, 0, 0))
             debug2 = font.render(str(getTrackLen(songPaths[queueHeader])), False, (255, 0, 0))
-            debug3 = font.render(str(songEnded), False, (255, 0, 0))
+            debug3 = font.render(str(int(volume*100)), False, (255, 0, 0))
             getCoverImage(songPaths[queueHeader])
             display.blit(debug, (0,0))
             display.blit(debug2, (0,700))
@@ -177,6 +178,20 @@ while not doQuit:
                                 songEnded = True
                         except pygame.error:
                             pass
+
+                    if event.key == pygame.K_DOWN:
+                        volume -= 0.1
+                        mixer.music.set_volume(volume)
+                        if mixer.music.get_volume() <= 0:
+                            mixer.music.set_volume(0)
+                            volume = 0
+                    if event.key == pygame.K_UP:
+                        volume += 0.1
+                        mixer.music.set_volume(volume)
+                        if mixer.music.get_volume() >= 1:
+                            mixer.music.set_volume(1)
+                            volume = 1
+
                     if event.key == pygame.K_SPACE or event.key == pygame.K_p:
                         if isPaused:
                             mixer.music.unpause()

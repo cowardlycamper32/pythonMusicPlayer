@@ -4,10 +4,11 @@ from mutagen.mp3 import MP3
 from mutagen.easyid3 import EasyID3
 from sys import argv
 from os import name, listdir, getcwd
-from os.path import expanduser
+from os.path import expanduser, join
 from pathlib import Path
 import random
 import time
+
 userHome = str(Path.home())
 DONTQUIT = True
 cwd = getcwd()
@@ -54,15 +55,19 @@ class Song():
         self.title = self.getTitle()
         self.artist = self.getArtist()
         self.length = self.getLen()
+        print(self.path)
 
     def getCover(self):
         """
         Gets cover data from metadata of mp3 at APIC:Cover
         :return: cover binary data
         """
-        audio = MP3(self.path)
-        cover = audio.tags.get("APIC:Cover")
-        return cover.data
+        try:
+            audio = MP3(self.path)
+            cover = audio.tags.get("APIC:Cover")
+            return cover.data
+        except AttributeError:
+            return open(manager.getExecDir() + "images/placeholder.png", "rb").read()
 
     def getTitle(self) -> str:
         """
@@ -108,10 +113,13 @@ class Manager:
         self.shuffledSongs = []
         self.isPaused = False
         self.isLooping = False
+        self.loopType = None
         self.songQueuePosition = 0
         self.currentSong = None
         self.shuffle = False
         self.songEnd = False
+        self.volume = 1
+        self.muted = False
 
     def getSongs(self, query):
         if query == "all" or query == "*":
@@ -122,6 +130,7 @@ class Manager:
             self.songs.append(query)
         self.shuffledSongs = self.songs
     def selectSong(self):
+        self.songEnd = False
         self.currentSong = Song(self.shuffledSongs[self.songQueuePosition])
         print(self.currentSong.path)
         self.currentSong.load()
@@ -161,10 +170,113 @@ class Manager:
         self.isPaused = not self.isPaused
 
     def skipNextSong(self):
-        pass
+        if self.songQueuePosition + 1 > len(self.shuffledSongs) and self.isLooping is False:
+            pass
+        elif (self.songQueuePosition + 1 > len(self.shuffledSongs) and self.isLooping is True and self.loopType == "all"):
+            self.songQueuePosition = 0
+        elif self.songQueuePosition + 1 <= len(self.shuffledSongs):
+            self.songQueuePosition += 1
+        self.songEnd = True
 
     def skipPrevSong(self):
-        pass
+        if self.songQueuePosition - 1 < 0 and self.isLooping is False:
+            pass
+        elif (self.songQueuePosition - 1 < 0 and self.isLooping is True and self.loopType == "all"):
+            self.songQueuePosition = len(self.shuffledSongs) - 1
+        elif self.songQueuePosition - 1 >= 0:
+            self.songQueuePosition -= 1
+        self.songEnd = True
+
+    def restartSong(self):
+        self.songEnd = True
+
+    def volumeDown(self, ammount=0.1):
+        if self.volume - ammount <= 0:
+            self.volume = 0
+            mixer.music.set_volume(self.volume)
+        else:
+            self.volume -= ammount
+
+            mixer.music.set_volume(self.volume)
+        if self.muted:
+            self.muted = False
+
+    def volumeUp(self, ammount=0.1):
+        if self.volume + ammount >= 1:
+            self.volume = 1
+            mixer.music.set_volume(self.volume)
+        else:
+            self.volume += ammount
+            mixer.music.set_volume(self.volume)
+        if self.muted:
+            self.muted = False
+
+    def volumeMute(self):
+        if not self.muted:
+            mixer.music.set_volume(0)
+        else:
+            mixer.music.set_volume(self.volume)
+        self.muted = not self.muted
+
+    def isSongEnd(self):
+        if int(mixer.music.get_pos()/1000) >= int(self.currentSong.length):
+            self.skipNextSong()
+            self.songEnded = True
+
+    def getExecDir(self):
+        temp = __file__.split(delimiter)
+        temp.pop(-1)
+        out = ""
+        for i in temp:
+            out += i + "/"
+        return out
+
+    def displayTimeline(self):
+        frac = ((mixer.music.get_pos()+1)/1000) / self.currentSong.length
+        print(frac)
+        if frac < 0.0020:
+            frac = 0.0021
+        pygame.draw.line(self.display, (255, 0, 0), (100, 600), (700, 600), 10)
+        shape = pygame.draw.line(self.display, (0, 255, 0), (100, 600), (100+(600*frac), 600), 10)
+
+
+    def displayIcons(self):
+        # Volume Icons
+        if 0.8 < self.volume <= 1:
+            if self.muted:
+                icon = "volumeMuted1"
+            else:
+                icon = "volume1"
+        elif 0.6 < self.volume <= 0.8:
+            if self.muted:
+                icon = "volumeMuted2"
+            else:
+                icon = "volume2"
+        elif 0.4 < self.volume <= 0.6:
+            if self.muted:
+                icon = "volumeMuted3"
+            else:
+                icon = "volume3"
+        elif 0.2 < self.volume <= 0.4:
+            if self.muted:
+                icon = "volumeMuted4"
+            else:
+                icon = "volume4"
+        elif 0 < self.volume <= 0.2:
+            if self.muted:
+                icon = "volumeMuted5"
+            else:
+                icon = "volume5"
+        else:
+            if self.muted:
+                icon = "volumeMuted5"
+            else:
+                icon = "volume6"
+        image = pygame.image.load(self.getExecDir() + "images/" + icon + ".png")
+        self.display.blit(image, (800-96-8, 400-20-8))
+        # timeline
+        self.displayTimeline()
+
 mixer.init()
 manager = Manager()
 manager.getSongs("all")
@@ -176,16 +288,44 @@ for arg in argv[1:]:
         manager.shuffleSongs()
 while DONTQUIT:
     for song in manager.shuffledSongs:
-        while (mixer.get_busy() or not manager.isPaused) and DONTQUIT:
-            manager.selectSong()
+        manager.selectSong()
+        while (mixer.music.get_busy() or manager.isPaused) and not manager.songEnd:
+            manager.display.fill((0, 0, 0))
             manager.displayCover()
+            manager.displayIcons()
             pygame.display.update()
             manager.liveCaption()
-            mixer.music.play()
+            manager.isSongEnd()
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
+                    quit(0)
                 if event.type == pygame.KEYDOWN:
+
+                    if event.key == pygame.K_ESCAPE or event.key == pygame.K_q:
+                        pygame.event.post(pygame.event.Event(pygame.QUIT))
+
                     if event.key == pygame.K_SPACE:
                         manager.pausePlay()
+
+                    if event.key == pygame.K_LEFT and pygame.key.get_mods() & pygame.KMOD_CTRL:
+                        if mixer.music.get_pos() > 5000:
+                            manager.restartSong()
+                        else:
+                            manager.skipPrevSong()
+
+                    if event.key == pygame.K_RIGHT and pygame.key.get_mods() & pygame.KMOD_CTRL:
+                        manager.skipNextSong()
+
+                    if event.key == pygame.K_UP:
+                        manager.volumeUp()
+
+                    if event.key == pygame.K_DOWN:
+                        manager.volumeDown()
+
+                    if event.key == pygame.K_m:
+                        manager.volumeMute()
+
+                    if event.key == pygame.K_s:
+                        manager.shuffleSongs()
