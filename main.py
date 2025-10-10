@@ -10,6 +10,7 @@ from mutagen.mp3 import MP3
 TEMP_DIR = "/home/nova/.temp/"
 
 
+
 pygame.display.init()
 display = pygame.display.set_mode((800, 800))
 

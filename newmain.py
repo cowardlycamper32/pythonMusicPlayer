@@ -7,7 +7,8 @@ import random
 from mutagen.easyid3 import EasyID3
 from mutagen.mp3 import MP3
 from  os.path import join
-if os.name == 'linux':
+print(os.name)
+if os.name == 'posix':
     TEMP_DIR = "/home/nova/.temp/"
 else:
     TEMP_DIR = "C:/users/nova/.temp/"
@@ -98,6 +99,9 @@ def skipNext():
     global queueHeader
     queueHeader += 1
 
+def skipPrev():
+    global queueHeader
+    queueHeader -= 1
 mixer.init()
 queueHeader = 0
 seekPointer = 0
@@ -121,6 +125,7 @@ while not doQuit:
         #print(songPaths)
         #print(queueHeader)
         pygame.display.set_caption(f"{getTrackName(songPaths[queueHeader])} - {getArtist(songPaths[queueHeader])}")
+        print(songPaths[queueHeader])
         mixer.music.load(songPaths[queueHeader])
         mixer.music.play()
         songEnded = False
@@ -166,6 +171,7 @@ while not doQuit:
                         try:
                             if mixer.music.get_pos() > 5000:
                                 mixer.music.rewind()
+                                songEnded = True
                             else:
                                 queueHeader = queueHeader - 1
                                 songEnded = True

@@ -1,13 +1,7 @@
-import pynput
+from mutagen.mp3 import MP3
+from mutagen.easyid3 import EasyID3
+import os
 
-def onPress(key):
-    if key == pynput.keyboard.Key.media_play_pause:
-        print("PAUSEPLAY")
-    elif key == pynput.keyboard.Key.media_next:
-        print("NEXTPLAY")
-    elif key == pynput.keyboard.Key.media_previous:
-        print("PREVIOUSPLAY")
+print(os.getcwd())
 
-while True:
-    listener = pynput.keyboard.Listener(on_press=onPress)
-    listener.start()
+MP3("./Annapantsu, Caleb Hyles - Addict.mp3")
