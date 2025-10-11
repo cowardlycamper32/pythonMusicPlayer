@@ -8,6 +8,7 @@ from os.path import expanduser, join
 from pathlib import Path
 import random
 import time
+from pynput import keyboard
 
 userHome = str(Path.home())
 DONTQUIT = True
@@ -55,7 +56,7 @@ class Song():
         self.title = self.getTitle()
         self.artist = self.getArtist()
         self.length = self.getLen()
-        print(self.path)
+        #print(self.path)
 
     def getCover(self):
         """
@@ -121,7 +122,26 @@ class Manager:
         self.volume = 1
         self.muted = False
         self.volumeTimer = 0
+        self.inputTimer = 0
+        self.inputListener = keyboard.Listener(on_press=self.onKeyPress)
 
+
+    def onKeyPress(self, key):
+        if key == keyboard.Key.media_next and self.inputTimer <= 0:
+            self.inputTimer = 10
+            self.skipNextSong()
+        if key == keyboard.Key.media_previous and self.inputTimer <= 0:
+            self.inputTimer = 10
+            if mixer.music.get_pos() > 5000:
+                self.restartSong()
+            else:
+                self.skipPrevSong()
+        if key == keyboard.Key.media_play_pause and self.inputTimer <= 0:
+            self.inputTimer = 10
+            self.pausePlay()
+
+    def startListener(self):
+        self.inputListener.start()
     def getSongs(self, query):
         if query == "all" or query == "*":
             for i in listdir("./"):
@@ -133,7 +153,7 @@ class Manager:
     def selectSong(self):
         self.songEnd = False
         self.currentSong = Song(self.shuffledSongs[self.songQueuePosition])
-        print(self.currentSong.path)
+        #print(self.currentSong.path)
         self.currentSong.load()
         #self.pausePlay()
 
@@ -238,7 +258,7 @@ class Manager:
     def displayTimeline(self):
         currentTime = mixer.music.get_pos()/1000
         frac = currentTime / self.currentSong.length
-        print(frac)
+        #print(frac)
         if frac < 0.0020:
             frac = 0.0021
         pygame.draw.line(self.display, (36, 59, 97), (100, 600), (700, 600), 10)
@@ -254,13 +274,13 @@ class Manager:
         currentTimeText = smallFont.render(f"{currentMins}:{currentSecs}", True, (65, 152, 255))
         fullTimeText = smallFont.render(f"{fullMins}:{fullSecs}", True, (65, 152, 255))
         self.display.blit(currentTimeText, (100, 612))
-        self.display.blit(fullTimeText, (700, 612))
+        self.display.blit(fullTimeText, (700-fullTimeText.get_width(), 612))
 
 
     def displayNameArtist(self):
         trackName = mediumFont.render(f"{self.currentSong.title}", True, (65, 152, 255))
         trackArtist = xsmallFont.render(f"{self.currentSong.artist}", True, (65, 152, 255))
-        pygame.draw.rect(self.display, (36, 59, 97, 75), pygame.rect.Rect((100, float((600-100)-(mediumFont.get_height()))), (700, 600)))
+        pygame.draw.rect(self.display, (36, 59, 97, 75), pygame.rect.Rect((95, float((600-100)-(mediumFont.get_height()))), (610, 100)))
         self.display.blit(trackName, (100, (600-100)-(mediumFont.get_height())))
         self.display.blit(trackArtist, (100, (600-75)-(xsmallFont.get_height())))
 
@@ -303,7 +323,9 @@ class Manager:
             image.set_alpha(255)
         else:
             image.set_alpha(-255)
-        self.display.blit(image, (800-96-8, 400-20-8))
+        temp1, temp2 = image.get_size()
+        image = pygame.transform.scale(image, (temp1/1.25, temp2/1.25))
+        self.display.blit(image, (800-image.get_width()-8, 800-image.get_height()-8))
         # timeline
         self.displayTimeline()
         # track name and artist
@@ -322,6 +344,8 @@ for arg in argv[1:]:
         exit()
     if "--shuffle" in arg:
         manager.shuffleSongs()
+
+manager.startListener()
 while DONTQUIT:
     for song in manager.shuffledSongs:
         manager.selectSong()
@@ -333,6 +357,8 @@ while DONTQUIT:
             manager.liveCaption()
             manager.isSongEnd()
             manager.volumeTimer -= 1
+            manager.inputTimer -= 1
+
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -352,7 +378,7 @@ while DONTQUIT:
                         else:
                             manager.skipPrevSong()
 
-                    if event.key == pygame.K_RIGHT and pygame.key.get_mods() & pygame.KMOD_CTRL:
+                    if (event.key == pygame.K_RIGHT and pygame.key.get_mods() & pygame.KMOD_CTRL):
                         manager.skipNextSong()
 
                     if event.key == pygame.K_UP:
