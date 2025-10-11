@@ -120,6 +120,7 @@ class Manager:
         self.songEnd = False
         self.volume = 1
         self.muted = False
+        self.volumeTimer = 0
 
     def getSongs(self, query):
         if query == "all" or query == "*":
@@ -191,6 +192,7 @@ class Manager:
         self.songEnd = True
 
     def volumeDown(self, ammount=0.1):
+        self.volumeTimer = 50
         if self.volume - ammount <= 0:
             self.volume = 0
             mixer.music.set_volume(self.volume)
@@ -202,6 +204,7 @@ class Manager:
             self.muted = False
 
     def volumeUp(self, ammount=0.1):
+        self.volumeTimer = 50
         if self.volume + ammount >= 1:
             self.volume = 1
             mixer.music.set_volume(self.volume)
@@ -212,6 +215,7 @@ class Manager:
             self.muted = False
 
     def volumeMute(self):
+        self.volumeTimer = 50
         if not self.muted:
             mixer.music.set_volume(0)
         else:
@@ -232,15 +236,35 @@ class Manager:
         return out
 
     def displayTimeline(self):
-        frac = ((mixer.music.get_pos()+1)/1000) / self.currentSong.length
+        currentTime = mixer.music.get_pos()/1000
+        frac = currentTime / self.currentSong.length
         print(frac)
         if frac < 0.0020:
             frac = 0.0021
-        pygame.draw.line(self.display, (255, 0, 0), (100, 600), (700, 600), 10)
-        shape = pygame.draw.line(self.display, (0, 255, 0), (100, 600), (100+(600*frac), 600), 10)
+        pygame.draw.line(self.display, (36, 59, 97), (100, 600), (700, 600), 10)
+        shape = pygame.draw.line(self.display, (56, 152, 255), (100, 600), (100+(600*frac), 600), 10)
+        currentMins = int(currentTime / 60)
+        currentSecs = int(currentTime % 60)
+        fullMins = int(self.currentSong.length/60)
+        fullSecs = int(self.currentSong.length % 60)
+        if fullSecs < 10:
+            fullSecs = "0" + str(fullSecs)
+        if currentSecs < 10:
+            currentSecs = "0" + str(currentSecs)
+        currentTimeText = smallFont.render(f"{currentMins}:{currentSecs}", True, (65, 152, 255))
+        fullTimeText = smallFont.render(f"{fullMins}:{fullSecs}", True, (65, 152, 255))
+        self.display.blit(currentTimeText, (100, 612))
+        self.display.blit(fullTimeText, (700, 612))
 
 
-    def displayIcons(self):
+    def displayNameArtist(self):
+        trackName = mediumFont.render(f"{self.currentSong.title}", True, (65, 152, 255))
+        trackArtist = xsmallFont.render(f"{self.currentSong.artist}", True, (65, 152, 255))
+        pygame.draw.rect(self.display, (36, 59, 97, 75), pygame.rect.Rect((100, float((600-100)-(mediumFont.get_height()))), (700, 600)))
+        self.display.blit(trackName, (100, (600-100)-(mediumFont.get_height())))
+        self.display.blit(trackArtist, (100, (600-75)-(xsmallFont.get_height())))
+
+    def displayInfo(self):
         # Volume Icons
         if 0.8 < self.volume <= 1:
             if self.muted:
@@ -273,11 +297,23 @@ class Manager:
             else:
                 icon = "volume6"
         image = pygame.image.load(self.getExecDir() + "images/" + icon + ".png")
+        if 30 >= self.volumeTimer > 0:
+            image.set_alpha(255-(255/self.volumeTimer))
+        elif self.volumeTimer > 30:
+            image.set_alpha(255)
+        else:
+            image.set_alpha(-255)
         self.display.blit(image, (800-96-8, 400-20-8))
         # timeline
         self.displayTimeline()
+        # track name and artist
+        self.displayNameArtist()
 
 mixer.init()
+pygame.font.init()
+smallFont = pygame.font.SysFont("monospace", 12)
+xsmallFont = pygame.font.SysFont("monospace", 14)
+mediumFont = pygame.font.SysFont("monospace", 24, True)
 manager = Manager()
 manager.getSongs("all")
 for arg in argv[1:]:
@@ -292,10 +328,11 @@ while DONTQUIT:
         while (mixer.music.get_busy() or manager.isPaused) and not manager.songEnd:
             manager.display.fill((0, 0, 0))
             manager.displayCover()
-            manager.displayIcons()
+            manager.displayInfo()
             pygame.display.update()
             manager.liveCaption()
             manager.isSongEnd()
+            manager.volumeTimer -= 1
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:

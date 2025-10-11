@@ -1,7 +1,7 @@
-from mutagen.mp3 import MP3
-from mutagen.easyid3 import EasyID3
-import os
 
-print(os.getcwd())
-
-MP3("./Annapantsu, Caleb Hyles - Addict.mp3")
+time = 119
+if time%60 <= 9:
+    seconds = "0" + str(time%60)
+else:
+    seconds = str(time%60)
+print(f"{int(time/60)}:{seconds}")
