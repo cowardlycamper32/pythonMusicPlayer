@@ -1,18 +1,8 @@
-import pygame
-from pygame import mixer
-from mutagen.mp3 import MP3
-from mutagen.easyid3 import EasyID3
-from sys import argv
-from os import name, listdir, getcwd
+from os import system, name
 from os.path import expanduser, join
+from sys import argv
 from pathlib import Path
-import random
-import time
-from pynput import keyboard
-
 userHome = str(Path.home())
-DONTQUIT = True
-cwd = getcwd()
 
 if name == "posix":
     for arg in argv:
@@ -35,6 +25,47 @@ elif name == "nt":
     delimiter = "\\"
 else:
     TEMP_DIR = None
+
+temp = __file__.split(delimiter)
+temp.pop(-1)
+out = ""
+for i in temp:
+    out += i + "/"
+
+try:
+    system(f"{out}.venv/Scripts/activate")
+except:
+    system(f"python -m venv {out}.venv")
+    system(f"{out}.venv/Scripts/activate")
+try:
+    import pygame
+except:
+    system("pip install pygame")
+    import pygame
+from pygame import mixer
+try:
+    from mutagen.mp3 import MP3
+except:
+    system("pip install mutagen")
+    from mutagen.mp3 import MP3
+from mutagen.easyid3 import EasyID3
+
+from os import listdir, getcwd
+
+
+import random
+import time
+try:
+    from pynput import keyboard
+except:
+    system("pip install pynput")
+    from pynput import keyboard
+
+
+DONTQUIT = True
+cwd = getcwd()
+
+
 
 HELP_MENU = f"""Usage: python newnewmain.py <songs> [args]
         \"--shuffle\": shuffle the songs list
@@ -313,7 +344,7 @@ class Manager:
                 icon = "volume5"
         else:
             if self.muted:
-                icon = "volumeMuted5"
+                icon = "volumeMuted6"
             else:
                 icon = "volume6"
         image = pygame.image.load(self.getExecDir() + "images/" + icon + ".png")
