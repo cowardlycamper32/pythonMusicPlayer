@@ -28,15 +28,15 @@ else:
 
 temp = __file__.split(delimiter)
 temp.pop(-1)
-out = ""
+execDir = ""
 for i in temp:
-    out += i + "/"
+    execDir += i + "/"
 
 try:
-    system(f"{out}.venv/Scripts/activate")
+    system(f"{execDir}.venv/Scripts/activate")
 except:
-    system(f"python -m venv {out}.venv")
-    system(f"{out}.venv/Scripts/activate")
+    system(f"python -m venv {execDir}.venv")
+    system(f"{execDir}.venv/Scripts/activate")
 try:
     import pygame
 except:
@@ -394,6 +394,7 @@ while DONTQUIT:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
+                    system(f"{execDir}.venv/deactivate")
                     quit(0)
                 if event.type == pygame.KEYDOWN:
 
