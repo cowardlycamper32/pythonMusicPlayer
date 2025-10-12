@@ -20,8 +20,8 @@ elif name == "nt":
             temp = arg.split("=")
             TEMP_DIR = temp[1]
         else:
-            print(expanduser("~/.temp"))
-            TEMP_DIR = expanduser("~/.temp")
+            print(f"{userHome}\.temp")
+            TEMP_DIR = f"{userHome}/.temp"
     delimiter = "\\"
 else:
     TEMP_DIR = None
