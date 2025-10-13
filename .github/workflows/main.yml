@@ -10,5 +10,5 @@ jobs:
     - uses: actions/checkout@v5
 
     - name: install PyInstaller
-    - uses: actions/bash installThings@v3
+    - run: python -m pip install pyinstaller
     
