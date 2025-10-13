@@ -30,8 +30,18 @@ jobs:
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: build with PyInstaller
       run: |
-        pyinstaller -n pyplayer newnewmain.py
+        pyinstaller -n pyplayer -y newnewmain.py
 
     - name: Move Images Folder over
       run: |
         cp -r ./images dist/pyplayer/images
+
+    - name: Push dist to gh
+      run: |
+        git add ./dist/*
+        git config user.name "$GITHUB_ACTOR"
+        git config user.email "$GITHUB_ACTOR@no-reply.github.com"
+        git commit -m "[skip ci] pushed release"
+        git push origin master
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
