@@ -397,6 +397,17 @@ for arg in argv[1:]:
         exit()
     if "--shuffle" in arg:
         manager.shuffleSongs()
+    if "--loop" in arg:
+        manager.isLooping = True
+        temp = arg.split("=")[1]
+        if temp.lower() == "all":
+            manager.loopType = "all"
+        elif temp.lower() == "song":
+            manager.loopType = "song"
+        else:
+            manager.looping = False
+            print(f"Invalid Argument Passed {temp} at \"--loop\"")
+
 
 manager.startListener()
 while DONTQUIT:

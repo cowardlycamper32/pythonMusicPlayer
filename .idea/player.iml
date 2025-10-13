@@ -3,6 +3,15 @@
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$">
       <excludeFolder url="file://$MODULE_DIR$/.venv" />
+      <excludeFolder url="file://$MODULE_DIR$/dist/pyplayer/_internal/charset_normalizer" />
+      <excludeFolder url="file://$MODULE_DIR$/dist/pyplayer/_internal/evdev" />
+      <excludeFolder url="file://$MODULE_DIR$/dist/pyplayer/_internal/jaraco" />
+      <excludeFolder url="file://$MODULE_DIR$/dist/pyplayer/_internal/numpy" />
+      <excludeFolder url="file://$MODULE_DIR$/dist/pyplayer/_internal/numpy-2.3.3.dist-info" />
+      <excludeFolder url="file://$MODULE_DIR$/dist/pyplayer/_internal/psutil" />
+      <excludeFolder url="file://$MODULE_DIR$/dist/pyplayer/_internal/pygame" />
+      <excludeFolder url="file://$MODULE_DIR$/dist/pyplayer/_internal/python3.13" />
+      <excludeFolder url="file://$MODULE_DIR$/dist/pyplayer/_internal/yaml" />
     </content>
     <orderEntry type="jdk" jdkName="Python 3.13 (player)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
