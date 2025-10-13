@@ -91,6 +91,8 @@ HELP_MENU = f"""Usage: python newnewmain.py <songs> [args]
         \"--shuffle\": shuffle the songs list
         \"--loop=[all/song]\": loop the songs list or singular song respectively
         \"--temp-dir=[directory]\": set the temporary directory to ssomewhere other than \"{TEMP_DIR}\"
+        \"--no-venv\": do not create or enable a virtual enviroment. Use the global python installation instead
+        \"--no-install\": do not attempt to install packages. DO NOT REPORT CRASHES WHILE USING THIS FLAG
         \"--help\": print this help and exit"""
 if len(argv[1:]) < 1:
     print(HELP_MENU)
