@@ -34,4 +34,4 @@ jobs:
 
     - name: Move Images Folder over
       run: |
-        copy ./images dist/pyplayer/images
+        cp ./images dist/pyplayer/images
