@@ -39,8 +39,8 @@ jobs:
     - name: Push dist to gh
       run: |
         git add ./dist/*
-        git config user.name="{{ $GITHUB_ACTOR }}"
-        git config user.email="{{ $GITHUB_ACTOR }}@no-reply.github.com"
+        git config user.name "$GITHUB_ACTOR"
+        git config user.email "$GITHUB_ACTOR@no-reply.github.com"
         git commit -m "[skip ci] pushed release"
         git push origin master
       env:
