@@ -206,8 +206,10 @@ class Manager:
             self.songs.append(query)
         self.shuffledSongs = self.songs
     def selectSong(self):
-        if (self.songQueuePosition > len(self.shuffledSongs) and self.isLooping is True and self.loopType == "all"):
+        if (self.songQueuePosition + 1 > len(self.shuffledSongs) and self.isLooping is True and self.loopType == "all"):
             self.songQueuePosition = 0
+        elif self.songQueuePosition < 0:
+            self.songQueuePosition = len(self.shuffledSongs)
         elif self.songQueuePosition + 1 <= len(self.shuffledSongs):
             self.songQueuePosition = self.songQueuePosition
         else:
