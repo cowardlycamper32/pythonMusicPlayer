@@ -177,6 +177,8 @@ class Manager:
         self.volumeTimer = 0
         self.inputTimer = 0
         self.inputListener = keyboard.Listener(on_press=self.onKeyPress)
+        self.titleScrollPosition = 0
+        self.artistScrollPosition = 0
 
 
     def onKeyPress(self, key):
@@ -204,6 +206,13 @@ class Manager:
             self.songs.append(query)
         self.shuffledSongs = self.songs
     def selectSong(self):
+        if (self.songQueuePosition > len(self.shuffledSongs) and self.isLooping is True and self.loopType == "all"):
+            self.songQueuePosition = 0
+        elif self.songQueuePosition + 1 <= len(self.shuffledSongs):
+            self.songQueuePosition = self.songQueuePosition
+        else:
+            print("Found End of Songs. Exiting...")
+            exit()
         self.songEnd = False
         self.currentSong = Song(self.shuffledSongs[self.songQueuePosition])
         #print(self.currentSong.path)
@@ -250,6 +259,8 @@ class Manager:
             self.songQueuePosition = 0
         elif self.songQueuePosition + 1 <= len(self.shuffledSongs):
             self.songQueuePosition += 1
+        self.titleScrollPosition = 0
+        self.artistScrollPosition = 0
         self.songEnd = True
 
     def skipPrevSong(self):
@@ -260,9 +271,13 @@ class Manager:
         elif self.songQueuePosition - 1 >= 0:
             self.songQueuePosition -= 1
         self.songEnd = True
+        self.artistScrollPosition = 0
+        self.titleScrollPosition = 0
 
     def restartSong(self):
         self.songEnd = True
+        self.artistScrollPosition = 0
+        self.titleScrollPosition = 0
 
     def volumeDown(self, ammount=0.1):
         self.volumeTimer = 50
@@ -332,10 +347,36 @@ class Manager:
 
     def displayNameArtist(self):
         trackName = mediumFont.render(f"{self.currentSong.title}", True, (65, 152, 255))
+
         trackArtist = xsmallFont.render(f"{self.currentSong.artist}", True, (65, 152, 255))
         pygame.draw.rect(self.display, (36, 59, 97, 75), pygame.rect.Rect((95, float((600-100)-(mediumFont.get_height()))), (610, 100)))
-        self.display.blit(trackName, (100, (600-100)-(mediumFont.get_height())))
-        self.display.blit(trackArtist, (100, (600-75)-(xsmallFont.get_height())))
+        if trackName.get_width() > 600:
+            newTrackName = mediumFont.render(f"{self.currentSong.title[int(self.titleScrollPosition):int(self.titleScrollPosition) + 40]}...", True,
+                                             (65, 152, 255))
+            if newTrackName.get_width() < 600:
+                newTrackName = mediumFont.render(f"{self.currentSong.title[int(self.titleScrollPosition):int(self.titleScrollPosition) + 40]}", True, (65, 152, 255))
+                if len(self.currentSong.title[int(self.titleScrollPosition):int(self.titleScrollPosition) + 40]) < 2:
+                    self.titleScrollPosition = 0
+                else:
+                    self.display.blit(newTrackName, (100, 600-100-mediumFont.get_height()))
+            self.display.blit(newTrackName, (100, (600 - 100) - mediumFont.get_height()))
+            self.titleScrollPosition += 0.05
+        else:
+            self.display.blit(trackName, (100, (600-100)-(mediumFont.get_height())))
+        if trackArtist.get_width() > 600:
+            newTrackArtist = xsmallFont.render(f"{self.currentSong.title[int(self.titleScrollPosition):int(self.titleScrollPosition) + 40]}...", True,
+                                               (65, 152, 255))
+            if newTrackArtist.get_width() < 600:
+                newTrackArtist = xsmallFont.render(f"{self.currentSong.title[int(self.titleScrollPosition):int(self.titleScrollPosition) + 40]}", True, (65, 152, 255))
+                if len(self.currentSong.artist[int(self.artistScrollPosition):int(self.artistScrollPosition) + 40]) < 1         :
+                    self.artistScrollPosition = 0
+                else:
+                    self.display.blit(newTrackArtist, (100, 600-75-xsmallFont.get_height()))
+            self.display.blit(newTrackArtist, (100, (600 - 75) - xsmallFont.get_height()))
+            self.titleScrollPosition += 0.05
+        else:
+            self.display.blit(trackArtist, (100, (600-75)-(xsmallFont.get_height())))
+
 
     def displayInfo(self):
         # Volume Icons

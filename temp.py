@@ -1,8 +1,9 @@
 import pynput.keyboard as keyboard
 
 def on_press(key):
-    if key == keyboard.Key.media_next:
-        print("media next")
+    print(key)
+    if str(key) == '<269025045>':
+        print("media stop")
     if key == keyboard.Key.media_previous:
         print("media previous")
     if key == keyboard.Key.media_play_pause:
