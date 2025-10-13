@@ -1,6 +1,6 @@
 from os import system, name
-from os.path import expanduser, join
-from sys import argv
+from os.path import expanduser, join, abspath, dirname
+from sys import argv,exit
 from pathlib import Path
 userHome = str(Path.home())
 
@@ -83,7 +83,7 @@ except Exception as e:
 
 
 DONTQUIT = True
-cwd = getcwd()
+cwd = "./"
 
 
 
@@ -96,7 +96,7 @@ HELP_MENU = f"""Usage: python newnewmain.py <songs> [args]
         \"--help\": print this help and exit"""
 if len(argv[1:]) < 1:
     print(HELP_MENU)
-    exit()
+    raise SystemExit
 
 
 
@@ -416,8 +416,9 @@ while DONTQUIT:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
-                    system(f"{execDir}.venv/deactivate")
-                    quit(0)
+                    if not noVenv:
+                        system(f"{execDir}.venv/Scripts/deactivate")
+                    exit(0)
                 if event.type == pygame.KEYDOWN:
 
                     if event.key == pygame.K_ESCAPE or event.key == pygame.K_q:
