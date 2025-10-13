@@ -1,5 +1,7 @@
 #!/bin/bash
 
+
+git pull origin master
 pyinstaller -n pyplayer "$1" -y
 cp ~/PycharmProjects/player/images ~/PycharmProjects/player/dist/pyplayer/_internal/images -r
 gh release create "$2" --generate-notes --draft
