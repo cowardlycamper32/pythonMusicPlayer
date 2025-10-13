@@ -31,3 +31,7 @@ jobs:
     - name: build with PyInstaller
       run: |
         pyinstaller -n pyplayer newnewmain.py
+
+    - name: Move Images Folder over
+      run: |
+        copy ./images dist/pyplayer/images
