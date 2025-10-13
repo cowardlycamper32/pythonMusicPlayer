@@ -26,28 +26,45 @@ elif name == "nt":
 else:
     TEMP_DIR = None
 
+if "--no-venv" in argv:
+    noVenv = True
+else:
+    noVenv = False
+
+if "--no-install" in argv:
+    noInstall = True
+else:
+    noInstall = False
+
 temp = __file__.split(delimiter)
 temp.pop(-1)
 execDir = ""
 for i in temp:
     execDir += i + "/"
-
-try:
-    system(f"{execDir}.venv/Scripts/activate")
-except:
-    system(f"python -m venv {execDir}.venv")
-    system(f"{execDir}.venv/Scripts/activate")
+if not noVenv:
+    try:
+        open(f"{userHome}/.venv/bin/activate").close()
+        system(f"{execDir}.venv/Scripts/activate")
+    except:
+        system(f"python -m venv {execDir}/.venv")
+        system(f"{execDir}.venv/Scripts/activate")
 try:
     import pygame
-except:
-    system("pip install pygame")
-    import pygame
+except Exception as e:
+    if not noInstall:
+        system("pip install pygame")
+        import pygame
+    else:
+        raise e
 from pygame import mixer
 try:
     from mutagen.mp3 import MP3
-except:
-    system("pip install mutagen")
-    from mutagen.mp3 import MP3
+except Exception as e:
+    if not noInstall:
+        system("pip install mutagen")
+        from mutagen.mp3 import MP3
+    else:
+        raise e
 from mutagen.easyid3 import EasyID3
 
 from os import listdir, getcwd
@@ -57,9 +74,12 @@ import random
 import time
 try:
     from pynput import keyboard
-except:
-    system("pip install pynput")
-    from pynput import keyboard
+except Exception as e:
+    if not noInstall:
+        system("pip install pynput")
+        from pynput import keyboard
+    else:
+        raise e
 
 
 DONTQUIT = True
