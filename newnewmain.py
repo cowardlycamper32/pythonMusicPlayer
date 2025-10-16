@@ -10,9 +10,11 @@ if name == "posix":
             temp = arg.split("=")
             TEMP_DIR = temp[1]
 
+
         else:
             TEMP_DIR = userHome + "/.temp"
     delimiter = "/"
+    VENV_DIR = "/.venv/bin/activate"
 
 elif name == "nt":
     for arg in argv:
@@ -23,8 +25,10 @@ elif name == "nt":
             print(f"{userHome}\.temp")
             TEMP_DIR = f"{userHome}/.temp"
     delimiter = "\\"
+    VENV_DIR = "/.venv/Scripts/activate"
 else:
     TEMP_DIR = None
+    VENV_DIR = "/.venv/Scripts/activate"
 
 if "--no-venv" in argv:
     noVenv = True
@@ -43,11 +47,11 @@ for i in temp:
     execDir += i + "/"
 if not noVenv:
     try:
-        open(f"{userHome}/.venv/bin/activate").close()
-        system(f"{execDir}.venv/Scripts/activate")
+        open(f"{userHome}{VENV_DIR}").close()
+        system(f"{execDir}{VENV_DIR}")
     except:
         system(f"python -m venv {execDir}/.venv")
-        system(f"{execDir}.venv/Scripts/activate")
+        system(f"{execDir}{VENV_DIR}")
 try:
     import pygame
 except Exception as e:
@@ -87,11 +91,11 @@ cwd = "./"
 
 
 
-HELP_MENU = f"""Usage: python newnewmain.py <songs> [args]
+HELP_MENU = f"""Usage: pyplayer <song/all> [args]
         \"--shuffle\": shuffle the songs list
         \"--loop=[all/song]\": loop the songs list or singular song respectively
-        \"--temp-dir=[directory]\": set the temporary directory to ssomewhere other than \"{TEMP_DIR}\"
-        \"--no-venv\": do not create or enable a virtual enviroment. Use the global python installation instead
+        \"--temp-dir=[directory]\": set the temporary directory to somewhere other than \"{TEMP_DIR}\"
+        \"--no-venv\": do not create or enable a virtual environment. Use the global python installation instead
         \"--no-install\": do not attempt to install packages. DO NOT REPORT CRASHES WHILE USING THIS FLAG
         \"--help\": print this help and exit"""
 if len(argv[1:]) < 1:
@@ -195,6 +199,18 @@ class Manager:
             self.inputTimer = 10
             self.pausePlay()
 
+    def showLyrics(self):
+        prevLyric = "Lyric1"
+        curLyric = "CURRENT LYRIC"
+        nextLyric = "NEXT LYRIC"
+
+        prevLyricDisplay = mediumFont.render(prevLyric, True, (36, 59, 97, 50))
+        curLyricDisplay = mediumFont.render(curLyric, True, (36, 59, 97, 100))
+        nextLyricDisplay = mediumFont.render(nextLyric, True, (36, 59, 97, 50))
+        self.display.blit(prevLyricDisplay, (20, 20))
+        self.display.blit(curLyricDisplay, (20, 120))
+        self.display.blit(nextLyricDisplay, (20, 220))
+
     def startListener(self):
         self.inputListener.start()
     def getSongs(self, query):
@@ -216,6 +232,7 @@ class Manager:
             print("Found End of Songs. Exiting...")
             exit()
         self.songEnd = False
+
         self.currentSong = Song(self.shuffledSongs[self.songQueuePosition])
         #print(self.currentSong.path)
         self.currentSong.load()
@@ -223,12 +240,21 @@ class Manager:
 
 
     def shuffleSongs(self):
+        currentPath = self.shuffledSongs[self.songQueuePosition]
         if self.shuffle:
             self.shuffledSongs = self.songs
             self.shuffle = False
+            self.songQueuePosition = self.songs.index(currentPath)
+            self.selectSong()
         else:
+
             random.shuffle(self.shuffledSongs)
+            self.shuffledSongs.pop(self.shuffledSongs.index(currentPath))
+            self.shuffledSongs.insert(0, currentPath)
+            self.songQueuePosition = 0
             self.shuffle = True
+
+
 
     def displayCover(self):
         cover = self.currentSong.getCover()
@@ -314,7 +340,8 @@ class Manager:
 
     def isSongEnd(self):
         if int(mixer.music.get_pos()/1000) >= int(self.currentSong.length):
-            self.skipNextSong()
+            if not self.isLooping or self.loopType == "all":
+                self.skipNextSong()
             self.songEnded = True
 
     def getExecDir(self):
@@ -379,6 +406,17 @@ class Manager:
         else:
             self.display.blit(trackArtist, (100, (600-75)-(xsmallFont.get_height())))
 
+    def setNoLoop(self):
+        self.looping = False
+        self.loopType = None
+
+    def setLoopAll(self):
+        self.looping = True
+        self.loopType = "all"
+
+    def setLoopSong(self):
+        self.looping = True
+        self.loopType = "song"
 
     def displayInfo(self):
         # Volume Icons
@@ -419,6 +457,31 @@ class Manager:
             image.set_alpha(255)
         else:
             image.set_alpha(-255)
+
+        if self.isLooping:
+            if self.loopType == "all":
+                loopIcon = "loop1"
+                loopIconAlpha = 255
+            elif self.loopType == "song":
+                loopIcon = "loop2"
+                loopIconAlpha = 255
+            else:
+                loopIcon = "loop1"
+                loopIconAlpha = 255/2
+        else:
+            loopIcon = "loop1"
+            loopIconAlpha = 255/2
+
+        if self.shuffle:
+            shuffleAlpha = 255
+        else:
+            shuffleAlpha = 255/2
+        shuffleIcon = pygame.image.load(self.getExecDir() + "images/shuffle.png")
+        shuffleIcon.set_alpha(shuffleAlpha)
+        self.display.blit(shuffleIcon, (0, 0))
+        loopIconImage = pygame.image.load(self.getExecDir() + "images/" + loopIcon + ".png")
+        loopIconImage.set_alpha(loopIconAlpha)
+        self.display.blit(loopIconImage, (600, 625))
         temp1, temp2 = image.get_size()
         image = pygame.transform.scale(image, (temp1/1.25, temp2/1.25))
         self.display.blit(image, (800-image.get_width()-8, 800-image.get_height()-8))
@@ -426,6 +489,8 @@ class Manager:
         self.displayTimeline()
         # track name and artist
         self.displayNameArtist()
+        # lyrics
+        #self.showLyrics()
 
 mixer.init()
 pygame.font.init()
@@ -501,3 +566,14 @@ while DONTQUIT:
 
                     if event.key == pygame.K_s:
                         manager.shuffleSongs()
+
+                    if event.key == pygame.K_l:
+                        if manager.isLooping:
+                            if manager.loopType == "song":
+                                manager.setNoLoop()
+                            elif manager.loopType == "all":
+                                manager.setLoopSong()
+                            else:
+                                manager.setLoopAll()
+                        else:
+                            manager.setLoopAll()

@@ -5,5 +5,6 @@ git pull origin master
 pyinstaller -n pyplayer "$1" -y
 cp ~/PycharmProjects/player/images ~/PycharmProjects/player/dist/pyplayer/_internal/images -r
 gh release create "$2" --generate-notes --draft
-tar czf buildFiles/pyplayer"$2".tar.gz dist/pyplayer
-gh release upload "$2" buildFiles/pyplayer"$2".tar.gz
+tar czf buildFiles/pyplayer"$2"LINUX.tar.gz dist/pyplayer
+gh release upload "$2" buildFiles/pyplayer"$2"LINUX.tar.gz
+gh release edit "$2" --draft=false
